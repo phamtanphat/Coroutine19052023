@@ -8,11 +8,13 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
@@ -36,22 +38,28 @@ class MainActivity : AppCompatActivity() {
                     Job() +
                     coroutineExceptionHandler
         ).launch {
-            val startTime = System.currentTimeMillis()
-            val job = launch(Dispatchers.Default) {
-                var nextPrintTime = startTime
-                var i = 0
-                while (isActive && i < 5) { // computation loop, just wastes CPU
-                    // print a message twice a second
-                    if (System.currentTimeMillis() >= nextPrintTime) {
-                        println("job: I'm sleeping ${i++} ...")
-                        nextPrintTime += 500L
+            supervisorScope {
+                // launch the first child -- its exception is ignored for this example (don't do this in practice!)
+                val firstChild = launch(CoroutineExceptionHandler { _, _ ->  }) {
+                    Log.d("BBB", "First child is failing")
+                    throw AssertionError("First child is cancelled")
+                }
+                // launch the second child
+                val secondChild = launch {
+                    firstChild.join()
+                    // Cancellation of the first child is not propagated to the second child
+                    Log.d("BBB", "First child is cancelled: ${firstChild.isCancelled}, but second one is still active")
+                    try {
+                        delay(Long.MAX_VALUE)
+                    } finally {
+                        // But cancellation of the supervisor is propagated
+                        Log.d("BBB", "Second child is cancelled because supervisor is cancelled")
                     }
                 }
+                // wait until the first child fails & completes
+                firstChild.join()
+                secondChild.join()
             }
-            delay(1300L) // delay a bit
-            println("main: I'm tired of waiting!")
-            job.cancel() // cancels the job and waits for its completion
-            println("main: Now I can quit.")
         }
     }
 }
