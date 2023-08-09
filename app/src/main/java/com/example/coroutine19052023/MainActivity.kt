@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -35,19 +36,22 @@ class MainActivity : AppCompatActivity() {
                     Job() +
                     coroutineExceptionHandler
         ).launch {
-
-            val jobChildren1 = launch {
-                delay(500)
-                Log.d("BBB", "Children 1 ${Thread.currentThread().name}")
+            val startTime = System.currentTimeMillis()
+            val job = launch(Dispatchers.Default) {
+                var nextPrintTime = startTime
+                var i = 0
+                while (isActive && i < 5) { // computation loop, just wastes CPU
+                    // print a message twice a second
+                    if (System.currentTimeMillis() >= nextPrintTime) {
+                        println("job: I'm sleeping ${i++} ...")
+                        nextPrintTime += 500L
+                    }
+                }
             }
-
-            val jobChildren2 = launch {
-                delay(200)
-                Log.d("BBB", "Children 2 ${Thread.currentThread().name}")
-            }
-
-            Log.d("BBB", "Finish")
+            delay(1300L) // delay a bit
+            println("main: I'm tired of waiting!")
+            job.cancel() // cancels the job and waits for its completion
+            println("main: Now I can quit.")
         }
-
     }
 }
