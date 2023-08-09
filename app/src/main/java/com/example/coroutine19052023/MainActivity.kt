@@ -31,11 +31,23 @@ class MainActivity : AppCompatActivity() {
 
         CoroutineScope(
             CoroutineName("Coroutine 1") +
-                    Dispatchers.Main +
+                    Dispatchers.IO +
                     Job() +
                     coroutineExceptionHandler
         ).launch {
 
+            val jobChildren1 = launch {
+                delay(500)
+                Log.d("BBB", "Children 1 ${Thread.currentThread().name}")
+            }
+
+            val jobChildren2 = launch {
+                delay(200)
+                Log.d("BBB", "Children 2 ${Thread.currentThread().name}")
+            }
+
+            Log.d("BBB", "Finish")
         }
+
     }
 }
