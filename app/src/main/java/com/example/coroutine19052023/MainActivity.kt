@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,7 +35,6 @@ class MainActivity : AppCompatActivity() {
 //        val coroutineExceptionHandler = CoroutineExceptionHandler { context, throwable ->
 //
 //        }
-
         CoroutineScope(
             CoroutineName("Coroutine 1") +
                     Dispatchers.IO +
@@ -42,19 +42,18 @@ class MainActivity : AppCompatActivity() {
 //                    coroutineExceptionHandler
         ).launch {
 
-            val deferred1 = async {
-                delay(2000)
-                return@async 100
-            }
+            val deferred1 = async { getRandomNumber() }
 
-            val deferred2 = async {
-                delay(1000)
-                return@async 100
-            }
+            val deferred2 = async { getRandomNumber() }
 
             val number1 = deferred1.await()
             val number2 = deferred2.await()
             Log.d("BBB", (number1 + number2).toString())
         }
+    }
+
+    suspend fun getRandomNumber(): Int {
+        delay(2000)
+        return Random.nextInt(100)
     }
 }
