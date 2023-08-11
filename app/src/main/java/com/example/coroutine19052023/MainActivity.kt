@@ -33,23 +33,26 @@ class MainActivity : AppCompatActivity() {
         // 3: Job => Life cycle coroutine
         // 4: CoroutineExceptionHandler => Bat loi exception cua coroutine
 
+//        val coroutineExceptionHandler = CoroutineExceptionHandler { context, throwable ->
+//
+//        }
         CoroutineScope(
             CoroutineName("Coroutine 1") +
                     Dispatchers.Main +
                     Job()
         ).launch {
 
-            Log.d("BBB", "Parent" + Thread.currentThread().name)
-            val exceptionHandler = CoroutineExceptionHandler { context, throwable ->
-                Log.d("BBB", throwable.message.toString())
+            val deferred = CoroutineScope(Dispatchers.Default).async {
+                delay(1000)
+                throw Exception("Loi")
             }
 
-            CoroutineScope(exceptionHandler).launch {
-                Log.d("BBB", "Child" + Thread.currentThread().name)
-                throw Exception("Error")
+            try {
+                val value = deferred.await()
+            } catch (e: Exception) {
+                Log.d("BBB", e.message.toString())
             }
 
-            Log.d("BBB", "Tiep tuc")
         }
     }
 }
