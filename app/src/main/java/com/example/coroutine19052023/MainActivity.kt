@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -40,13 +41,20 @@ class MainActivity : AppCompatActivity() {
                     Job()
 //                    coroutineExceptionHandler
         ).launch {
-            for (a in 0..100) {
-                delay(10)
+
+            val deferred1 = async {
+                delay(2000)
+                return@async 100
             }
 
-            withContext(Dispatchers.Main) {
-                Toast.makeText(this@MainActivity, "Finish", Toast.LENGTH_SHORT).show()
+            val deferred2 = async {
+                delay(1000)
+                return@async 100
             }
+
+            val number1 = deferred1.await()
+            val number2 = deferred2.await()
+            Log.d("BBB", (number1 + number2).toString())
         }
     }
 }
