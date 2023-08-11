@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import kotlin.coroutines.CoroutineContext
 import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
@@ -32,28 +33,23 @@ class MainActivity : AppCompatActivity() {
         // 3: Job => Life cycle coroutine
         // 4: CoroutineExceptionHandler => Bat loi exception cua coroutine
 
-//        val coroutineExceptionHandler = CoroutineExceptionHandler { context, throwable ->
-//
-//        }
         CoroutineScope(
             CoroutineName("Coroutine 1") +
-                    Dispatchers.IO +
+                    Dispatchers.Main +
                     Job()
-//                    coroutineExceptionHandler
         ).launch {
 
-            val deferred1 = async { getRandomNumber() }
+            Log.d("BBB", "Parent" + Thread.currentThread().name)
+            val exceptionHandler = CoroutineExceptionHandler { context, throwable ->
+                Log.d("BBB", throwable.message.toString())
+            }
 
-            val deferred2 = async { getRandomNumber() }
+            CoroutineScope(exceptionHandler).launch {
+                Log.d("BBB", "Child" + Thread.currentThread().name)
+                throw Exception("Error")
+            }
 
-            val number1 = deferred1.await()
-            val number2 = deferred2.await()
-            Log.d("BBB", (number1 + number2).toString())
+            Log.d("BBB", "Tiep tuc")
         }
-    }
-
-    suspend fun getRandomNumber(): Int {
-        delay(2000)
-        return Random.nextInt(100)
     }
 }
